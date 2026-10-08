@@ -89,7 +89,7 @@ html:not(.intro-on) .intro{opacity:0;pointer-events:none}
 .winking .mark::after{animation:spark .7s ease-out both}
 
 /* "Hello World" typed beside the prompt (below it on very narrow screens). */
-.intro-type{position:absolute;inset-inline-start:var(--tx,50%);inset-block-start:var(--ty,50%);translate:0 -50%;
+.intro-type{position:absolute;inset-inline-start:var(--itx,50%);inset-block-start:var(--ity,50%);translate:0 -50%;
   font:500 clamp(1.1rem,2.6vw,1.8rem) var(--mono);color:var(--cy);white-space:nowrap;opacity:0;transition:opacity .3s}
 /* Narrow screens: the greeting sits centred below the prompt instead of beside it. */
 .stack .intro-type{inset-inline:0;text-align:center;translate:none}
@@ -374,7 +374,18 @@ h2 small{font:500 .8rem var(--mono);color:var(--cy);letter-spacing:0}
 .steps li:hover .node{background:var(--cy);border-color:var(--cy);color:var(--on);box-shadow:0 0 0 4px color-mix(in srgb,var(--cy) 18%,transparent)}
 .js .pipe li{opacity:0;translate:0 14px;transition:opacity .6s var(--e),translate .8s var(--e);transition-delay:calc(var(--i,0)*90ms + 150ms)}
 .js .pipe.in li{opacity:1;translate:none}
-.js .pipe.seen li{transition-delay:0s}
+
+/* ==========================================================================
+   Swipe support (phones): hint line + direction-aware slide animations
+   ========================================================================== */
+.swipe{display:none}
+@keyframes nudge{0%,100%{transform:none}50%{transform:translateX(-4px)}}
+@keyframes swapl{from{opacity:0;transform:translateX(-18px)}}
+@keyframes tabr{from{opacity:0;transform:translateX(16px)}}
+@keyframes tabl{from{opacity:0;transform:translateX(-16px)}}
+.js .deck article.act[data-dir=prev]{animation-name:swapl}
+.cs.big[data-dir=next]:not([hidden]){animation:tabr .35s var(--e)}
+.cs.big[data-dir=prev]:not([hidden]){animation:tabl .35s var(--e)}
 
 /* ==========================================================================
    Footer and toast
@@ -388,19 +399,17 @@ h2 small{font:500 .8rem var(--mono);color:var(--cy);letter-spacing:0}
 /* ==========================================================================
    Scroll reveal
    ========================================================================== */
-.js .rv{opacity:0;transform:translate(var(--tx,0),var(--ty,24px)) scale(var(--sc,1));
+.js .rv{opacity:0;transform:translate(var(--rx,0),var(--ry,24px)) scale(var(--sc,1));
   transition:opacity .8s var(--e),transform 1s var(--e),border-color .25s,box-shadow .25s;
   transition-delay:calc(var(--st,0)*80ms),calc(var(--st,0)*80ms),0s,0s}
 .js .rv.in{opacity:1;transform:none}
-[data-rv=left]{--tx:-48px;--ty:0}
-[data-rv=right]{--tx:48px;--ty:0}
-[data-rv=up]{--ty:34px}
-[data-rv=down]{--ty:-34px}
-[data-rv=scale]{--ty:16px;--sc:.93}
-[data-rv=fade]{--ty:0}
-/* lighter re-entry after the first reveal */
-.js .rv.seen:not(.in){--tx:0px;--ty:10px;--sc:1;transition-duration:.3s,.4s,.25s,.25s;transition-delay:0s}
-.js .rv.seen.in{transition-duration:.35s,.45s,.25s,.25s;transition-delay:0s}
+[data-rv=left]{--rx:-48px;--ry:0}
+[data-rv=right]{--rx:48px;--ry:0}
+[data-rv=up]{--ry:34px}
+[data-rv=down]{--ry:-34px}
+[data-rv=scale]{--ry:16px;--sc:.93}
+[data-rv=fade]{--ry:0}
+/* Animations are never reduced or skipped: every reveal replays in full each time a block re-enters the screen. */
 
 /* ==========================================================================
    Responsive
@@ -418,9 +427,19 @@ h2 small{font:500 .8rem var(--mono);color:var(--cy);letter-spacing:0}
   .steps li:nth-child(2n)::before,.steps li:last-child::before{display:none}
 }
 @media(max-width:46rem){
+  /* Safety net: whatever animates or translates inside the page can never widen it.
+     "clip" (unlike "hidden") does not create a scroll container, so position:sticky keeps working.
+     A wider page makes mobile browsers widen the layout viewport, which pushes the fixed bottom bar off screen. */
+  html,body{overflow-x:clip;max-inline-size:100%}
+  main.w,.ft{overflow-x:clip}
+  .swipe,.bd p.swipe{display:flex;justify-content:center;align-items:center;gap:.6rem;margin-block:-.2rem .7rem;font:.7rem var(--mono);color:var(--mu)}
+  .bd p.swipe{margin-block:.1rem .7rem}
+  .swipe i{font:700 1rem/1 var(--mono);font-style:normal;color:var(--cy);animation:nudge 1.8s var(--e) infinite}
+  .swipe i:last-child{animation-direction:reverse}
+  #skills .cs.big{min-block-size:9.5rem;align-content:flex-start}
   body{padding-block-end:calc(4.8rem + env(safe-area-inset-bottom,0px))}
-  [data-rv=left]{--tx:-26px}
-  [data-rv=right]{--tx:26px}
+  [data-rv=left]{--rx:-26px}
+  [data-rv=right]{--rx:26px}
   .js .deck .sel{transform:translateY(20px)}
   .js .deck:not(.in) article.act{transform:translateY(20px)}
   .w{padding-inline:.9rem}

@@ -9,6 +9,35 @@ const EMAIL = "kahmdhatm@gmail.com";
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const isMouse = (e) => e.pointerType === "mouse";
 
+/* Horizontal swipe detector for touch screens. Uses plain touch events and never blocks scrolling:
+   vertical drags keep scrolling the page; only a clearly horizontal flick calls back (dir = 1 next, -1 previous).
+   Swipes that start inside `ignore` (rows that scroll sideways on their own) are left alone. */
+function onSwipe(el, cb, ignore) {
+  if (!el) return;
+  let sx = 0, sy = 0, t0 = 0, track = false;
+  el.addEventListener("touchstart", (e) => {
+    track = e.touches.length === 1 && !(ignore && e.target.closest(ignore));
+    if (!track) return;
+    sx = e.touches[0].clientX;
+    sy = e.touches[0].clientY;
+    t0 = e.timeStamp;
+  }, { passive: true });
+  el.addEventListener("touchend", (e) => {
+    if (!track) return;
+    track = false;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Math.abs(dx) >= 48 && Math.abs(dx) > Math.abs(dy) * 1.4 && e.timeStamp - t0 < 900) cb(dx < 0 ? 1 : -1);
+  }, { passive: true });
+  el.addEventListener("touchcancel", () => (track = false), { passive: true });
+}
+
+/* Scroll a sideways-scrolling row so the chosen button sits in the middle (never moves the page itself). */
+function centerIn(row, btn) {
+  const r = btn.getBoundingClientRect(), s = row.getBoundingClientRect();
+  row.scrollBy({ left: r.left - s.left - (s.width - r.width) / 2, behavior: "smooth" });
+}
+
 /* Tell boot.js that the module started, so its failsafe stays quiet. */
 window.__booted = true;
 
@@ -92,12 +121,18 @@ $$('a[href^="mailto:"]').forEach((link) => {
    Skill tabs: click, arrow keys, or hover with a mouse (short intent delay)
    ========================================================================== */
 const tabs = $$("[role=tab][aria-controls^=p]");
+let tabNow = -1;
 function showTab(tab, focus = false) {
+  const idx = tabs.indexOf(tab);
+  const dir = tabNow < 0 || idx === tabNow ? "" : idx > tabNow ? "next" : "prev";
+  tabNow = idx;
   tabs.forEach((t) => {
     const on = t === tab;
     t.setAttribute("aria-selected", on);
     t.tabIndex = on ? 0 : -1;
-    $("#" + t.getAttribute("aria-controls")).hidden = !on;
+    const panel = $("#" + t.getAttribute("aria-controls"));
+    panel.hidden = !on;
+    if (on) panel.dataset.dir = dir;
   });
   if (focus) tab.focus();
 }
@@ -118,6 +153,14 @@ tabs.forEach((tab, i) => {
   });
 });
 if (tabs.length) showTab(tabs[0]);
+
+/* Swipe the Capabilities card left or right to move between the skill groups. */
+onSwipe($("#skillswipe"), (dir) => {
+  const next = tabs[tabNow + dir];
+  if (!next) return;
+  showTab(next);
+  centerIn(next.parentElement, next);
+}, ".tabs");
 
 /* ==========================================================================
    Project switcher (Work): hover with intent delay, focus, click, arrow keys
@@ -162,12 +205,16 @@ if (live && deck) {
   let hoverTimer;
   pick = (i) => {
     if (i === current) return;
+    const dir = current < 0 || i > current ? "next" : "prev";
     current = i;
     btns.forEach((b, k) => {
       b.setAttribute("aria-selected", k === i);
       b.tabIndex = k === i ? 0 : -1;
     });
-    panels.forEach((p, k) => p.classList.toggle("act", k === i));
+    panels.forEach((p, k) => {
+      p.classList.toggle("act", k === i);
+      if (k === i) p.dataset.dir = dir;
+    });
   };
 
   btns.forEach((btn, i) => {
@@ -187,6 +234,14 @@ if (live && deck) {
     });
   });
   pick(0);
+
+  /* Swipe the project card left or right to move between projects. */
+  onSwipe(deck, (dir) => {
+    const next = current + dir;
+    if (next < 0 || next >= btns.length) return;
+    pick(next);
+    centerIn(sel, btns[next]);
+  }, ".sel");
 }
 
 /* ==========================================================================
@@ -311,7 +366,6 @@ const revealObserver = new IntersectionObserver(
         el.classList.add("in");
       } else if (!entry.isIntersecting && el.classList.contains("in")) {
         el.classList.remove("in");
-        el.classList.add("seen");
       }
     }),
   { threshold: [0, 0.08] }
@@ -550,8 +604,8 @@ async function runIntro() {
   root.classList.toggle("stack", stack);
   root.style.setProperty("--ix", markX - (box.left + box.width / 2) + "px");
   root.style.setProperty("--iy", markY - (box.top + box.height / 2) + "px");
-  root.style.setProperty("--ty", textY + "px");
-  if (!stack) root.style.setProperty("--tx", textX + "px");
+  root.style.setProperty("--ity", textY + "px");
+  if (!stack) root.style.setProperty("--itx", textX + "px");
   mark.style.transform = "";
   void mark.offsetWidth; /* apply the new position instantly, without a visible slide */
   mark.style.transition = "";

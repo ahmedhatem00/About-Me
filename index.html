@@ -65,6 +65,7 @@
 
 <section class="sec" id="work">
   <h2><small>~/work</small>Selected projects</h2>
+  <p class="swipe" aria-hidden="true"><i>&lsaquo;</i> swipe left or right to browse <i>&rsaquo;</i></p>
     <div class="deck rv" id="deck">
   <article class="win win--sarh">
     <div class="tb"><i></i><i></i><i></i><span>sarh/app.js</span></div>
@@ -163,7 +164,7 @@
   <h2><small>~/skills</small>Capabilities</h2>
   <article class="win rv">
     <div class="tb"><i></i><i></i><i></i><span>skills.json</span></div>
-    <div class="bd">
+    <div class="bd" id="skillswipe">
       <div class="tabs" role="tablist" aria-label="Skill groups">
         <button role="tab" id="t1" aria-controls="p1" aria-selected="true" type="button">Front-end</button>
         <button role="tab" id="t2" aria-controls="p2" aria-selected="false" type="button">Mobile</button>
@@ -172,6 +173,7 @@
         <button role="tab" id="t5" aria-controls="p5" aria-selected="false" type="button">Security and IT</button>
         <button role="tab" id="t6" aria-controls="p6" aria-selected="false" type="button">Professional</button>
       </div>
+      <p class="swipe" aria-hidden="true"><i>&lsaquo;</i> swipe left or right to switch <i>&rsaquo;</i></p>
       <div class="cs big" role="tabpanel" id="p1" aria-labelledby="t1"><span class="c">HTML5 semantic and accessible</span><span class="c">CSS3 custom properties, grid, flexbox</span><span class="c">RTL and logical properties</span><span class="c">JavaScript ES6+ modules, async</span><span class="c">PWA: service workers, manifest, offline</span><span class="c">CSP, CSRF, XSS escaping</span><span class="c">Accessibility</span><span class="c">SEO</span><span class="c">Performance: WebP, lazy loading</span></div>
       <div class="cs big" role="tabpanel" id="p2" aria-labelledby="t2" hidden><span class="c">Dart and Flutter</span><span class="c">Provider state management</span><span class="c">Hive and SQLite</span><span class="c">Local notifications</span><span class="c">Foreground services</span><span class="c">WebRTC</span><span class="c">Firebase Auth</span><span class="c">Platform channels with Kotlin</span></div>
       <div class="cs big" role="tabpanel" id="p3" aria-labelledby="t3" hidden><span class="c">Python</span><span class="c">Node.js</span><span class="c">REST APIs</span><span class="c">WebSockets and Socket.IO</span><span class="c">PostgreSQL</span><span class="c">Supabase</span><span class="c">SQL migrations</span><span class="c">Docker and Docker Compose</span><span class="c">nginx</span><span class="c">Cloudflare Pages</span><span class="c">GitHub Actions CI/CD</span></div>
